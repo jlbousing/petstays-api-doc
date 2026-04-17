@@ -13,8 +13,6 @@ Con las credenciales del **propietario del hotel** (cuenta autorizada) puedes:
 - Consultar **disponibilidad por tipo de habitación** en una sucursal y rango de fechas.
 - **Listar, crear, consultar y anular** reservas asociadas a las sucursales de ese propietario.
 
-El API está bajo el prefijo estándar de WordPress:
-
 | Concepto | Valor |
 |----------|--------|
 | Prefijo REST | `/wp-json/` |
