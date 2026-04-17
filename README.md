@@ -90,13 +90,66 @@ Devuelve reservas del hotel autenticado, con paginación.
 | `page` | No | Página (por defecto `1`). |
 | `per_page` | No | Tamaño de página (máximo `100`, por defecto `20`). |
 
-**Respuesta 200 (estructura)**
+**Respuesta 200 — ejemplo JSON**
 
-- `items`: array de reservas.
-- `total`: total de registros.
-- `page`, `per_page`: paginación.
+Los valores son ilustrativos; en producción verás los datos reales del hotel. Algunos campos pueden llegar como cadena vacía `""` si no están rellenados en el sistema.
 
-Cada elemento de `items` incluye campos como: `id`, `title`, `status`, `property_id`, `room_type_id`, `room_id`, `check_in_date`, `check_out_date`, `guest_name`, `guest_email`, `guest_phone`, `booking_status`, `total_price`, `booking_source`, `modified_gmt`.
+```json
+{
+  "items": [
+    {
+      "id": 41310,
+      "title": "Reserva API — Ana Pérez",
+      "status": "publish",
+      "property_id": 41153,
+      "room_type_id": 8821,
+      "room_id": 15001,
+      "check_in_date": "2026-04-20",
+      "check_out_date": "2026-04-25",
+      "guest_name": "Ana Pérez",
+      "guest_email": "ana@example.com",
+      "guest_phone": "+34 600 11 22 33",
+      "booking_status": "pending",
+      "total_price": "245.50",
+      "booking_source": "petstays_rest_api",
+      "modified_gmt": "2026-04-15 14:32:01"
+    },
+    {
+      "id": 41288,
+      "title": "Reserva de Habitación #1713187200",
+      "status": "publish",
+      "property_id": 41153,
+      "room_type_id": 8820,
+      "room_id": 14990,
+      "check_in_date": "2026-05-01",
+      "check_out_date": "2026-05-03",
+      "guest_name": "Carlos Ruiz",
+      "guest_email": "carlos@example.com",
+      "guest_phone": "",
+      "booking_status": "confirmed",
+      "total_price": "180.00",
+      "booking_source": "",
+      "modified_gmt": "2026-04-10 09:15:00"
+    }
+  ],
+  "total": 47,
+  "page": 1,
+  "per_page": 20
+}
+```
+
+**Campos útiles para tu código**
+
+| Campo | Tipo habitual | Uso típico |
+|-------|----------------|------------|
+| `id` | número | Identificador único de la reserva en PetStays. |
+| `property_id` | número | Sucursal. |
+| `room_type_id` | número | Tipo de habitación reservado. |
+| `room_id` | número | Habitación física asignada (puede ser `0` si aún no hay asignación). |
+| `check_in_date` / `check_out_date` | string `YYYY-MM-DD` | Rango de la estancia. |
+| `booking_status` | string | Ej.: `pending`, `confirmed`, `payment_pending`, etc. |
+| `total_price` | string | Precio tal como está guardado (trátalo como decimal en tu app). |
+| `modified_gmt` | string | Última modificación (hora UTC). |
 
 ---
 
@@ -108,8 +161,41 @@ Cada elemento de `items` incluye campos como: `id`, `title`, `status`, `property
 |-----------|-------------|
 | `id` | Número de la reserva. |
 
-**200** — Mismo formato que un elemento de `items` en el listado.  
-**404** — Reserva inexistente o no pertenece a las sucursales del propietario autenticado.
+**Respuesta 200 — ejemplo JSON**
+
+Misma forma que **un solo objeto** dentro de `items` del listado:
+
+```json
+{
+  "id": 41310,
+  "title": "Reserva API — Ana Pérez",
+  "status": "publish",
+  "property_id": 41153,
+  "room_type_id": 8821,
+  "room_id": 15001,
+  "check_in_date": "2026-04-20",
+  "check_out_date": "2026-04-25",
+  "guest_name": "Ana Pérez",
+  "guest_email": "ana@example.com",
+  "guest_phone": "+34 600 11 22 33",
+  "booking_status": "pending",
+  "total_price": "245.50",
+  "booking_source": "petstays_rest_api",
+  "modified_gmt": "2026-04-15 14:32:01"
+}
+```
+
+**404** — Reserva inexistente o no pertenece a las sucursales del propietario autenticado (ejemplo de cuerpo típico WordPress REST):
+
+```json
+{
+  "code": "petstays_api_not_found",
+  "message": "Reserva no encontrada.",
+  "data": {
+    "status": 404
+  }
+}
+```
 
 ---
 
@@ -134,9 +220,75 @@ Cada elemento de `items` incluye campos como: `id`, `title`, `status`, `property
 | `booking_status` | No | Por ejemplo `pending`, `confirmed` o `waiting` (por defecto `pending`). |
 | Precios opcionales | No | `price_per_night`, `nights`, `total_price`, `tax_percent`, `tax_amount`, `subtotal_before_tax` si el flujo lo requiere. |
 
-**201** — Incluye `id` de la reserva creada, un mensaje y el objeto `item` con los datos de la reserva.
+**Respuesta 201 — ejemplo JSON**
 
-**Errores habituales:** `400` (datos incompletos o fechas inválidas), `403`, `404`, `409` (sin disponibilidad suficiente en PetStays para esas fechas).
+Usa siempre `item` como fuente de verdad de la reserva recién creada; `id` se repite arriba por comodidad.
+
+```json
+{
+  "id": 41310,
+  "message": "Reserva creada.",
+  "item": {
+    "id": 41310,
+    "title": "Reserva API — Ana Pérez",
+    "status": "publish",
+    "property_id": 41153,
+    "room_type_id": 8821,
+    "room_id": 15001,
+    "check_in_date": "2026-04-20",
+    "check_out_date": "2026-04-25",
+    "guest_name": "Ana Pérez",
+    "guest_email": "ana@example.com",
+    "guest_phone": "+34 600 11 22 33",
+    "booking_status": "pending",
+    "total_price": "245.50",
+    "booking_source": "petstays_rest_api",
+    "modified_gmt": "2026-04-15 14:32:01"
+  }
+}
+```
+
+**Errores — ejemplos JSON**
+
+Sin disponibilidad en PetStays para esas fechas (`409`):
+
+```json
+{
+  "code": "petstays_api_no_availability",
+  "message": "No hay suficientes habitaciones disponibles para esas fechas.",
+  "data": {
+    "status": 409
+  }
+}
+```
+
+Petición incompleta (`400`):
+
+```json
+{
+  "code": "petstays_api_bad_request",
+  "message": "property_id y room_type_id son obligatorios.",
+  "data": {
+    "status": 400
+  }
+}
+```
+
+Sin permiso sobre la sucursal (`403`):
+
+```json
+{
+  "code": "petstays_api_forbidden",
+  "message": "No tienes permiso sobre esta sucursal.",
+  "data": {
+    "status": 403
+  }
+}
+```
+
+> El campo `code` es estable para ramificar lógica en tu cliente; `message` puede variar ligeramente según idioma o versión.
+
+**Errores habituales (resumen):** `400`, `403`, `404`, `409`.
 
 #### Nota para hoteles con sistema externo sincronizado
 
@@ -148,8 +300,17 @@ Algunos hoteles tienen configurada una **sincronización con otro sistema** (PMS
 
 **DELETE** `/reservations/{id}`
 
-Marca la reserva como eliminada en PetStays (equivalente a moverla a papelera).  
-**200** — Confirma `id`, `deleted: true` y mensaje.
+Marca la reserva como eliminada en PetStays (equivalente a moverla a papelera).
+
+**Respuesta 200 — ejemplo JSON**
+
+```json
+{
+  "id": 41310,
+  "deleted": true,
+  "message": "Reserva movida a la papelera."
+}
+```
 
 ---
 
@@ -166,9 +327,110 @@ Devuelve, para una sucursal y un rango de fechas, cuántas habitaciones hay por 
 | `check_out_date` | Sí | Fin del rango. Debe ser **posterior** a `check_in_date`. La disponibilidad se calcula con el rango tipo **entrada inclusiva / salida exclusiva** (como una estancia de noche). |
 | `room_type_id` | No | Si lo envías, solo se devuelve ese tipo. Si no existe en la sucursal → **404**. |
 
-**200** — Objeto con `property_id`, `room_type_id` (o `null` si no filtraste), `range` (`check_in_date`, `check_out_date` normalizadas) e `items`: lista con `room_type_id`, `room_type_name`, `total_rooms`, `occupied_rooms`, `available_rooms`, `has_availability`.
+**Respuesta 200 — ejemplo JSON (sin filtro `room_type_id`)**
 
-**Errores:** `400`, `403`, `404` (tipo no válido en esa sucursal).
+Un elemento en `items` por cada tipo de habitación configurado en esa sucursal.
+
+```json
+{
+  "property_id": 41153,
+  "room_type_id": null,
+  "range": {
+    "check_in_date": "2026-04-20",
+    "check_out_date": "2026-04-25"
+  },
+  "items": [
+    {
+      "room_type_id": 8820,
+      "room_type_name": "Estándar",
+      "total_rooms": 8,
+      "occupied_rooms": 3,
+      "available_rooms": 5,
+      "has_availability": true
+    },
+    {
+      "room_type_id": 8821,
+      "room_type_name": "Suite",
+      "total_rooms": 3,
+      "occupied_rooms": 3,
+      "available_rooms": 0,
+      "has_availability": false
+    },
+    {
+      "room_type_id": 8822,
+      "room_type_name": "Familiar",
+      "total_rooms": 4,
+      "occupied_rooms": 1,
+      "available_rooms": 3,
+      "has_availability": true
+    }
+  ]
+}
+```
+
+**Respuesta 200 — ejemplo JSON (con `room_type_id=8821`)**
+
+Solo una fila en `items`; `room_type_id` en la raíz repite el filtro.
+
+```json
+{
+  "property_id": 41153,
+  "room_type_id": 8821,
+  "range": {
+    "check_in_date": "2026-04-20",
+    "check_out_date": "2026-04-25"
+  },
+  "items": [
+    {
+      "room_type_id": 8821,
+      "room_type_name": "Suite",
+      "total_rooms": 3,
+      "occupied_rooms": 3,
+      "available_rooms": 0,
+      "has_availability": false
+    }
+  ]
+}
+```
+
+**Cómo usar estos campos en tu código**
+
+| Campo | Significado |
+|-------|-------------|
+| `total_rooms` | Habitaciones publicadas y disponibles para reserva de ese tipo en la sucursal. |
+| `occupied_rooms` | Habitaciones que **chocan** con otra reserva en el rango pedido. |
+| `available_rooms` | `total_rooms - occupied_rooms` (mínimo `0`). |
+| `has_availability` | `true` si `available_rooms > 0`. |
+
+**Errores — ejemplo JSON (`400`, fechas mal formadas o rango inválido)**
+
+```json
+{
+  "code": "petstays_api_bad_dates_range",
+  "message": "check_out_date debe ser mayor que check_in_date.",
+  "data": {
+    "status": 400
+  }
+}
+```
+
+---
+
+## Respuestas de error (autenticación)
+
+Si faltan o son incorrectas las cabeceras (`401`), el cuerpo suele ser similar a:
+
+```json
+{
+  "code": "petstays_api_auth_invalid",
+  "message": "API key no válida.",
+  "data": {
+    "status": 401
+  }
+}
+```
+
+Los textos de `message` pueden variar; usa siempre **`data.status`** y **`code`** para la lógica de reintentos y mensajes al usuario.
 
 ---
 
